@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
 	send_data_begin = (int*)malloc(sizeof(int)*proc_num);
 	int *send = (int*)malloc(sizeof(int)*proc_num);
 
-	//Заполнение массивов с количеством элементов и индексами начала блоков, которые //отдаются каждому процессу
-
+	//Р—Р°РїРѕР»РЅРµРЅРёРµ РјР°СЃСЃРёРІРѕРІ СЃ РєРѕР»РёС‡РµСЃС‚РІРѕРј СЌР»РµРјРµРЅС‚РѕРІ Рё РёРЅРґРµРєСЃР°РјРё РЅР°С‡Р°Р»Р° Р±Р»РѕРєРѕРІ, РєРѕС‚РѕСЂС‹Рµ
+	//РѕС‚РґР°СЋС‚СЃСЏ РєР°Р¶РґРѕРјСѓ РїСЂРѕС†РµСЃСЃСѓ
 	for (i = 0; i < proc_num; i++)
 		send_num[i] = N / proc_num;
 
@@ -119,8 +119,7 @@ int main(int argc, char* argv[]) {
 	double* prev_r = (double*)malloc(sizeof(double)*N);
 	double* z = (double*)malloc(sizeof(double)*N);
 
-	//Умножение Ax
-
+	//РЈРјРЅРѕР¶РµРЅРёРµ Ax
 	for (i = 0; i < send_num[proc_rank]; i++) {
 
 		for (j = 0; j < N; j++) {
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
 
 		MPE_Log_event(evtid_beginPhase1, proc_rank, (char*)0);
 
-		//Умножение Az
+		//РЈРјРЅРѕР¶РµРЅРёРµ Az
 
 		for (i = 0; i< send_num[proc_rank]; i++)
 			proc_res[i] = 0;
@@ -186,7 +185,7 @@ int main(int argc, char* argv[]) {
 
 		MPI_Allgatherv(proc_res, get_num[proc_rank], MPI_DOUBLE, res, get_num, get_data_begin, MPI_DOUBLE, MPI_COMM_WORLD);
 
-		//Вычисление alpha, r(n+1), x(n+1), beta, z(n+1)
+		//Р’С‹С‡РёСЃР»РµРЅРёРµ alpha, r(n+1), x(n+1), beta, z(n+1)
 
 		alpha = scal_mul(r, r, N) / scal_mul(res, z, N);
 		plus(x, z, alpha, x, N);
