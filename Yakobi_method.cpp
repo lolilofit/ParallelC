@@ -121,8 +121,9 @@ int main(int argc, char* argv[]) {
 	for (i = 1; i<proc_num; ++i) {
 		send_data_begin[i] = send_data_begin[i - 1] + send_num[i - 1];
 	}
-
-	//если число процессов больше, чем число строк, посчитать сколько процессов //реально задействуется в вычислениях
+	
+	
+	//РµСЃР»Рё С‡РёСЃР»Рѕ РїСЂРѕС†РµСЃСЃРѕРІ Р±РѕР»СЊС€Рµ, С‡РµРј С‡РёСЃР»Рѕ СЃС‚СЂРѕРє, РїРѕСЃС‡РёС‚Р°С‚СЊ СЃРєРѕР»СЊРєРѕ РїСЂРѕС†РµСЃСЃРѕРІ //СЂРµР°Р»СЊРЅРѕ Р·Р°РґРµР№СЃС‚РІСѓРµС‚СЃСЏ РІ РІС‹С‡РёСЃР»РµРЅРёСЏС…
 	real_proc_num = proc_num;
 	for (i = proc_num - 1; i >= 0; --i) {
 		if (send_num[i] != 0) {
@@ -131,7 +132,8 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	//инициализация начальными значениями в каждом потоке
+	
+	//РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РЅР°С‡Р°Р»СЊРЅС‹РјРё Р·РЅР°С‡РµРЅРёСЏРјРё РІ РєР°Р¶РґРѕРј РїРѕС‚РѕРєРµ
 	for (i = 0; i< send_num[proc_rank]; ++i) {
 		for (j = 0; j<n2; ++j) {
 			for (k = 0; k<n3; ++k) {
@@ -168,7 +170,7 @@ int main(int argc, char* argv[]) {
 	MPI_Status statf[2];
 	MPI_Status stats[2];
 
-	//обмен граничными значениями
+	//РѕР±РјРµРЅ РіСЂР°РЅРёС‡РЅС‹РјРё Р·РЅР°С‡РµРЅРёСЏРјРё
 	if (proc_rank < real_proc_num) {
 		if (proc_rank != (real_proc_num - 1)) {
 			MPI_Isend(val, send_num[proc_rank] * n2*n3, MPI_DOUBLE, proc_rank + 1, 123, MPI_COMM_WORLD, &reqf[0]);
@@ -212,7 +214,8 @@ int main(int argc, char* argv[]) {
 						prev_val[i*n2*n3 + j * n3 + k] = val[i*n2*n3 + j * n3 + k];
 				}
 			}
-			//пересчитать точки на границе
+			
+			//РїРµСЂРµСЃС‡РёС‚Р°С‚СЊ С‚РѕС‡РєРё РЅР° РіСЂР°РЅРёС†Рµ
 			for (j = 1; j < (n2 - 1); ++j) {
 				for (k = 1; k< (n3 - 1); ++k) {
 					if (proc_rank != 0 && (send_num[proc_rank] > 1 || proc_rank != (real_proc_num - 1)))
@@ -233,7 +236,8 @@ int main(int argc, char* argv[]) {
 				}
 			}
 
-			//обмен граничными значениями
+			
+			//РѕР±РјРµРЅ РіСЂР°РЅРёС‡РЅС‹РјРё Р·РЅР°С‡РµРЅРёСЏРјРё
 			if (proc_rank != (real_proc_num - 1)) {
 				MPI_Isend(val, send_num[proc_rank] * n2*n3, MPI_DOUBLE, proc_rank + 1, 123, MPI_COMM_WORLD, &reqf[0]);
 				MPI_Irecv(next, n1*n2*n3, MPI_DOUBLE, proc_rank + 1, 124, MPI_COMM_WORLD, &reqs[1]);
@@ -245,7 +249,7 @@ int main(int argc, char* argv[]) {
 			}
 
 
-			//пересчет внутренних точек области
+			//РїРµСЂРµСЃС‡РµС‚ РІРЅСѓС‚СЂРµРЅРЅРёС… С‚РѕС‡РµРє РѕР±Р»Р°СЃС‚Рё
 			for (i = 1; i<send_num[proc_rank] - 1; ++i) {
 				for (j = 1; j < (n2 - 1); ++j) {
 					for (k = 1; k < (n3 - 1); ++k) {
@@ -255,7 +259,7 @@ int main(int argc, char* argv[]) {
 			}
 
 
-			//найти максимум в каждом потоке для своего куска
+			//РЅР°Р№С‚Рё РјР°РєСЃРёРјСѓРј РІ РєР°Р¶РґРѕРј РїРѕС‚РѕРєРµ РґР»СЏ СЃРІРѕРµРіРѕ РєСѓСЃРєР°
 			find_local_max(val, prev_val, send_num[proc_rank]);
 
 
@@ -270,7 +274,8 @@ int main(int argc, char* argv[]) {
 			}
 		}
 
-		//разослать максимумы и найти общий максимум
+		
+		//СЂР°Р·РѕСЃР»Р°С‚СЊ РјР°РєСЃРёРјСѓРјС‹ Рё РЅР°Р№С‚Рё РѕР±С‰РёР№ РјР°РєСЃРёРјСѓРј
 		if (proc_rank != 0) {
 			MPI_Send(&max, 1, MPI_DOUBLE, 0, 222, MPI_COMM_WORLD);
 			MPI_Recv(&global_max, 1, MPI_DOUBLE, 0, 223, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
