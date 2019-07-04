@@ -6,14 +6,15 @@
 
 const int N = 32768;
 
-//линейная операция a+k*b
+//Р»РёРЅРµР№РЅР°СЏ РѕРїРµСЂР°С†РёСЏ a+k*b
 void plus(double* a1, double* a2, double k2, double* res, int size) {
 	int i;
 	for (i = 0; i < size; i++)
 		res[i] = a1[i] + a2[i] * k2;
 }
 
-//квадратный корень
+
+//РєРІР°РґСЂР°С‚РЅС‹Р№ РєРѕСЂРµРЅСЊ
 double sqrt(const double x) {
 	if (x <= 0) {
 		return 0;
@@ -30,7 +31,8 @@ double sqrt(const double x) {
 	return w - (y * y) / (2 * w);
 }
 
-//скалярное умножение
+
+//СЃРєР°Р»СЏСЂРЅРѕРµ СѓРјРЅРѕР¶РµРЅРёРµ
 double scal_mul(double* a1, double* a2, int size) {
 	int i;
 	double sum = 0.0;
@@ -120,7 +122,7 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	//инициализация частей A, b, r, x
+	//РёРЅРёС†РёР°Р»РёР·Р°С†РёСЏ С‡Р°СЃС‚РµР№ A, b, r, x
 	for (i = 0; i < send_num[proc_rank]; i++) {
 		for (j = 0; j < N; j++) {
 			if ((send_data_begin[proc_rank] + i) == j)
@@ -134,7 +136,7 @@ int main(int argc, char* argv[]) {
 		bufB[i] = N + 1;
 	}
 
-	//умножение Ax
+	//РЈРјРЅРѕР¶РµРЅРёРµ Ax
 	double sum = 0.0;
 
 	for (i = 0; i< send_num[proc_rank]; i++) {
@@ -160,7 +162,7 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-	//вычисление частей r(0), z(0) для каждого потока
+	//РІС‹С‡РёСЃР»РµРЅРёРµ С‡Р°СЃС‚РµР№ r(0), z(0) РґР»СЏ РєР°Р¶РґРѕРіРѕ РїРѕС‚РѕРєР°
 	plus(bufB, buf_r, -1, buf_r, send_num[proc_rank]);
 	for (i = 0; i<send_num[proc_rank]; i++)
 		buf_z[i] = buf_r[i];
@@ -179,7 +181,7 @@ int main(int argc, char* argv[]) {
 	for (i = 1; i<proc_num; i++)
 		get_data_begin[i] = get_num[i - 1] + get_data_begin[i - 1];
 
-	//собираются матрицы r, b, x с каждого потока
+	//РІС‹С‡РёСЃР»РµРЅРёРµ С‡Р°СЃС‚РµР№ r(0), z(0) РґР»СЏ РєР°Р¶РґРѕРіРѕ РїРѕС‚РѕРєР°
 	MPI_Allgatherv(buf_r, get_num[proc_rank], MPI_DOUBLE, r, get_num, get_data_begin, MPI_DOUBLE, MPI_COMM_WORLD);
 	MPI_Allgatherv(bufB, get_num[proc_rank], MPI_DOUBLE, b, get_num, get_data_begin, MPI_DOUBLE, MPI_COMM_WORLD);
 	MPI_Allgatherv(buf_x, get_num[proc_rank], MPI_DOUBLE, x, get_num, get_data_begin, MPI_DOUBLE, MPI_COMM_WORLD);
@@ -214,7 +216,7 @@ int main(int argc, char* argv[]) {
 		MPE_Describe_state(evtid_beginPhase1, evtid_endPhase1, "Phase1", "cycle_begin");
 		MPE_Log_event(evtid_beginPhase1, proc_rank, (char*)0);
 
-		//рассылка частей матриц каждому процессу
+		//СЂР°СЃСЃС‹Р»РєР° С‡Р°СЃС‚РµР№ РјР°С‚СЂРёС† РєР°Р¶РґРѕРјСѓ РїСЂРѕС†РµСЃСЃСѓ
 		MPI_Scatterv(b, send_num, send_data_begin, MPI_DOUBLE, bufB, send_num[proc_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		MPI_Scatterv(r, send_num, send_data_begin, MPI_DOUBLE, buf_r, send_num[proc_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
 		MPI_Scatterv(x, send_num, send_data_begin, MPI_DOUBLE, buf_x, send_num[proc_rank], MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -225,8 +227,7 @@ int main(int argc, char* argv[]) {
 		MPI_Allreduce(&scalar, &scal_res, 1, MPI_DOUBLE, MPI_SUM, comm_gr);
 		alpha = scal_res;
 
-		//Умножение Аz
-
+		//РЈРјРЅРѕР¶РµРЅРёРµ Az
 		for (i = 0; i<send_num[proc_rank]; i++) {
 			buf_res[i] = 0;
 			z_copy[i] = buf_z[i];
@@ -260,7 +261,7 @@ int main(int argc, char* argv[]) {
 			scalar += buf_res[i] * buf_z[i];
 		MPI_Allreduce(&scalar, &scal_res, 1, MPI_DOUBLE, MPI_SUM, comm_gr);
 
-		//Вычисление alpha, r(n+1), x(n+1), beta, z(n+1) 
+		//Р’С‹С‡РёСЃР»РµРЅРёРµ alpha, r(n+1), x(n+1), beta, z(n+1) 
 		alpha = alpha / scal_res;
 		plus(buf_x, buf_z, alpha, buf_x, send_num[proc_rank]);
 
