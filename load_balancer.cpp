@@ -93,7 +93,6 @@ void* calc(void* args) {
 		pthread_mutex_lock(&iter_mutext);
 		init_list(&task_list);
 
-		//сгенерировать задания
 		for (j = 0; j < TASK_NUM; ++j) {
 			struct Task *t = (struct Task*)malloc(sizeof(struct Task));
 			create_task(t);
@@ -108,7 +107,6 @@ void* calc(void* args) {
 				struct Task *given = (struct Task*)malloc(sizeof(struct Task));
 				int answer;
 
-				//выполнить задания
 				for (j = 0; j < TASK_NUM; ++j) {
 					if (task_list.tasks[j] != NULL) {
 						struct Task do_it = *(task_list.tasks[j]);
@@ -117,7 +115,6 @@ void* calc(void* args) {
 						given_num = -1;
 						if (get == 0) {
 							pthread_mutex_unlock(&iter_mutext);
-							//пока процесс считает, он может отдать свободное задание другим
 							res = do_task(do_it);
 							pthread_mutex_lock(&iter_mutext);
 						}
@@ -131,7 +128,6 @@ void* calc(void* args) {
 				calculating_now = -1;
 				pthread_mutex_unlock(&iter_mutext);
 
-				//задания кончились, попросить новых
 				question = 1;
 				printf("%d : mes_send to %d\n", proc_rank, proc);
 				MPI_Send(&question, 1, MPI_INT, proc, 123, MPI_COMM_WORLD);
@@ -172,7 +168,6 @@ void* calc(void* args) {
 				given_num = -1;
 				if (get == 0) {
 					pthread_mutex_unlock(&iter_mutext);
-					//пока процесс считает, он может отдать свободное задание другим
 					res = do_task(do_it);
 					pthread_mutex_lock(&iter_mutext);
 				}
